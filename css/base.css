@@ -80,7 +80,7 @@ Contents
 /*===================================================================================================
 3) Typography
 ===================================================================================================*/
-	h1, h2, h3, h4, h5, h6 {
+	h1, h2, h3, h4, h5, h6, h7 {
 		color: #222;
 		font-family: Georgia, Arial, sans-serif;
 		font-weight: normal; }
@@ -91,6 +91,7 @@ Contents
 	h4 { font-size: 21px; line-height: 30px; margin-bottom: 6px; }
 	h5 { font-size: 17px; line-height: 24px; }
 	h6 { font-size: 14px; line-height: 21px; }
+	h7 { font-size: 21px; line-height: 30px; font-style: italic }
 	.subheader { color: #777; }
 
 	p { margin: 0 0 20px 0; }
