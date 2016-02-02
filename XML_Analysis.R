@@ -54,10 +54,19 @@ Ncits = vector(,Tot)
 Norg = vector(,Tot)
 Ninv = vector(,Tot)
 Nleg = vector(,Tot)
+NAssignment=0
+NCorrection=0
+NDisclaimer=0
+NFeePayment=0
+NReexam=0
 
+
+
+Ngeneral=vector()
+countleg=0
 for (file in files) 
 {
-    data <- xmlParse(file)
+    data <- xmlTreeParse(file)
     xmltop=xmlRoot(data)
     
     if (length(xmltop[[1]][["number-of-claims"]])==0)
@@ -78,13 +87,36 @@ for (file in files)
       Ncits[count] = length(xmlSApply(xmltop[[1]][["references-cited"]], xmlName)) #forward and prior
     }
     
-    if (length(xmltop[[3]])==0)
-    { 
-      Nleg[count]=0
-    }
+    if (length(xmltop)>2){
+      
+      if (length(xmltop[[3]])==0)
+      { 
+        Nleg[count]=0
+      }
     else
-    {
+      {
       Nleg[count] = length(xmlSApply(xmltop[[3]], xmlName))
+      for (n in 1:Nleg[count] ){
+        type = toString(xmltop[[3]][[n]][['legal-description']][['text']])
+        Ngeneral[countleg] = toString(xmltop[[3]][[n]][['legal-description']][['text']])
+        countleg=countleg+1
+        if (type=='ASSIGNMENT'){
+          NAssignment=NAssignment+1
+        }
+        else if (type=="CERTIFICATE OF CORRECTION"){
+          NCorrection = NCorrection+1
+        }
+        else if (type=="DISCLAIMER FILED"){
+          NDisclaimer = NDisclaimer + 1
+        }
+        else if (type=="FEE PAYMENT"){
+          NFeePayment = NFeePayment+1
+        }
+        else if (type=="REQUEST FOR REEXAMINATION FILED"){
+          NReexam = NReexam + 1
+        }
+     }
+      }
     }
 
     if (length(xmltop[[1]][["parties"]][["applicants"]][["applicant"]][["addressbook"]][["orgname"]])==0)
@@ -107,14 +139,16 @@ for (file in files)
     count=count+1
     
 }
+LitData = data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
+LitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 
-LitData=data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
 
 #Collect relevant data for both Litigated XMLS
 
 setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015/XMLs/Unlitigated_Training")
 
 count=1
+countleg=0
 files <- list.files()
 
 #Initialize Vectors
@@ -124,10 +158,17 @@ Ncits = vector(,Tot)
 Norg = vector(,Tot)
 Ninv = vector(,Tot)
 Nleg = vector(,Tot)
+NAssignment=0
+NCorrection=0
+NDisclaimer=4
+NFeePayment=15
+NReexam=4
+Ngeneral=vector()
+countleg=0
 
 for (file in files) 
 {
-  data <- xmlParse(file)
+  data <- xmlTreeParse(file)
   xmltop=xmlRoot(data)
   
   if (length(xmltop[[1]][["number-of-claims"]])==0)
@@ -146,15 +187,36 @@ for (file in files)
   {
     Ncits[count] = length(xmlSApply(xmltop[[1]][["references-cited"]], xmlName)) #forward and prior
   }
-  
-  if (length(xmltop[[3]])==0)
-  { Nleg[count]=0
+  if (length(xmltop)>2){
+    
+    if (length(xmltop[[3]])==0)
+    { Nleg[count]=0
+    }
+    else
+    {
+      Nleg[count] = length(xmlSApply(xmltop[[3]], xmlName))
+      for (n in 1:Nleg[count] ){
+        type = toString(xmltop[[3]][[n]][['legal-description']][['text']])
+        Ngeneral[countleg] = toString(xmltop[[3]][[n]][['legal-description']][['text']])
+        countleg=countleg+1
+        if (type=='ASSIGNMENT'){
+          NAssignment=NAssignment+1
+        }
+        else if (type=="CERTIFICATE OF CORRECTION"){
+          NCorrection = NCorrection+1
+        }
+        else if (type=="DISCLAIMER FILED"){
+          NDisclaimer = NDisclaimer + 1
+        }
+        else if (type=="FEE PAYMENT"){
+          NFeePayment = NFeePayment+1
+        }
+        else if (type=="REQUEST FOR REEXAMINATION FILED"){
+          NReexam = NReexam + 1
+        }
+      }
+    }
   }
-  else
-  {
-    Nleg[count] = length(xmlSApply(xmltop[[3]], xmlName))
-  }
-  
   if (length(xmltop[[1]][["parties"]][["applicants"]][["applicant"]][["addressbook"]][["orgname"]])==0)
   { Norg[count]="NA"
   }
@@ -175,9 +237,14 @@ for (file in files)
   
 }
 
-UnLitData=data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
-
+UnLitData = data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
+UnLitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015")
+
+totassign = LitDataLegal[1]+UnLitDataLegal[1]
+totcorrect = LitDataLegal[2]+UnLitDataLegal[2]
+totexam = LitDataLegal[3]+UnLitDataLegal[3]
+totdisclaim = LitDataLegal[4]+UnLitDataLegal[4]
 
 ## Create Plots
 #par(mar=c(5,1,2,1))
@@ -206,12 +273,22 @@ MasterDataP$LegalEvents=MasterDataP$LegalEvents/max(MasterDataP$LegalEvents)
 MasterDataPn=MasterDataP[,c(1:3,6)]
 dfm <- melt(MasterDataPn, id.vars="Litigation")
 p2=ggplot(dfm, aes(x=Litigation, y=value, fill=variable)) + geom_boxplot() + theme(text = element_text(size=20))
-p2=p2+ylab("Normalized Value")
+p2=p2+ylab("Normalized Frequency")
 
 grid.arrange(p2)
 dev.copy(png, file="BoxPlot.png", width=900, height=600) #Copy my plot to a PNG file
 dev.off() #close dev environment
 
+Type      <- c(rep(c("Assignment", "Correction", "Reexamination", "Disclaimer"), each = 2))
+Category  <- c(rep(c('Litigated', 'UnLitigated'), times = 2))
+Frequency <- c(round(LitDataLegal[1]/totassign, digits=3), round(UnLitDataLegal[1]/totassign, digits=3), round(LitDataLegal[2]/totcorrect, digits=3), round(UnLitDataLegal[2]/totcorrect, digits=3), round(LitDataLegal[3]/totexam,digits=3) , round(UnLitDataLegal[3]/totexam, digits=3), round(LitDataLegal[4]/totdisclaim, digits=3), round(UnLitDataLegal[4]/totdisclaim, digits=3))
+Data      <- data.frame(Type, Category, Frequency)
+p <- qplot(Type, Frequency, data = Data, geom = "bar", stat='identity', fill = Category, theme_set(theme_bw()))
+p=p + geom_text(aes(label = Frequency), size = 7, hjust = 0.5, vjust = 3, position = "stack") + theme(text = element_text(size=20))
+p=p+ylab("Normalized Frequency")
+print(p)
+dev.copy(png, file="LegalBarPlot.png", width=900, height=600) #Copy my plot to a PNG file
+dev.off() #close dev environment
 #boxplot(MasterDataP, main = "",fill=c("gold","darkgreen"), notch = TRUE, col = 1:3)
 
 # ggplot(data = Masterdata, aes(x = Litigation, y = x)) + 
