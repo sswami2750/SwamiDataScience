@@ -8,6 +8,7 @@ library(reshape2)
 library(data.table)
 library(sfsmisc)
 library(grid)
+library(stringr)
 require(gridExtra)
 
 # data <- xmlParse("USRE041169E.xml")
@@ -40,7 +41,15 @@ require(gridExtra)
 
 # Key Statistics
 
+# Load Scraped Forward Citations
+
+setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015")
+
+LitForwardCit <- as.numeric(scan("LitCitData.txt", what="", sep="\n"))
+UnLitForwardCit <- as.numeric(scan("UnLitCitData.txt", what="", sep="\n"))
+
 #Collect relevant data for both Litigated XMLS
+
 
 setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015/XMLs/Litigated_Training")
 
@@ -139,7 +148,7 @@ for (file in files)
     count=count+1
     
 }
-LitData = data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
+LitData = data.frame(Claims=Nclaims, Citations=Ncits, ForwardCitations = LitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
 LitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 
 
@@ -160,9 +169,9 @@ Ninv = vector(,Tot)
 Nleg = vector(,Tot)
 NAssignment=0
 NCorrection=0
-NDisclaimer=4
+NDisclaimer=3
 NFeePayment=15
-NReexam=4
+NReexam=2
 Ngeneral=vector()
 countleg=0
 
@@ -237,7 +246,7 @@ for (file in files)
   
 }
 
-UnLitData = data.frame(Claims=Nclaims, Citations=Ncits, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
+UnLitData = data.frame(Claims=Nclaims, Citations=Ncits, ForwardCitations = UnLitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
 UnLitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015")
 
@@ -269,8 +278,9 @@ MasterDataP=Masterdata
 MasterDataP$Claims=MasterDataP$Claims/max(MasterDataP$Claims)
 MasterDataP$Citations=MasterDataP$Citations/max(MasterDataP$Citations)
 MasterDataP$LegalEvents=MasterDataP$LegalEvents/max(MasterDataP$LegalEvents)
+MasterDataP$ForwardCitations=MasterDataP$ForwardCitations/max(MasterDataP$ForwardCitations)
 
-MasterDataPn=MasterDataP[,c(1:3,6)]
+MasterDataPn=MasterDataP[,c(1:4,7)]
 dfm <- melt(MasterDataPn, id.vars="Litigation")
 p2=ggplot(dfm, aes(x=Litigation, y=value, fill=variable)) + geom_boxplot() + theme(text = element_text(size=20))
 p2=p2+ylab("Normalized Frequency")
@@ -281,11 +291,11 @@ dev.off() #close dev environment
 
 Type      <- c(rep(c("Assignment", "Correction", "Reexamination", "Disclaimer"), each = 2))
 Category  <- c(rep(c('Litigated', 'UnLitigated'), times = 2))
-Frequency <- c(round(LitDataLegal[1]/totassign, digits=3), round(UnLitDataLegal[1]/totassign, digits=3), round(LitDataLegal[2]/totcorrect, digits=3), round(UnLitDataLegal[2]/totcorrect, digits=3), round(LitDataLegal[3]/totexam,digits=3) , round(UnLitDataLegal[3]/totexam, digits=3), round(LitDataLegal[4]/totdisclaim, digits=3), round(UnLitDataLegal[4]/totdisclaim, digits=3))
+Frequency <- c(round(LitDataLegal[1]/totassign, digits=3)*100, round(UnLitDataLegal[1]/totassign, digits=3)*100, round(LitDataLegal[2]/totcorrect, digits=3)*100, round(UnLitDataLegal[2]/totcorrect, digits=3)*100, round(LitDataLegal[3]/totexam,digits=3)*100 , round(UnLitDataLegal[3]/totexam, digits=3)*100, round(LitDataLegal[4]/totdisclaim, digits=3)*100, round(UnLitDataLegal[4]/totdisclaim, digits=3)*100)
 Data      <- data.frame(Type, Category, Frequency)
 p <- qplot(Type, Frequency, data = Data, geom = "bar", stat='identity', fill = Category, theme_set(theme_bw()))
 p=p + geom_text(aes(label = Frequency), size = 7, hjust = 0.5, vjust = 3, position = "stack") + theme(text = element_text(size=20))
-p=p+ylab("Normalized Frequency")
+p=p+ylab("Normalized Frequency (%)")+xlab("Legal Event")
 print(p)
 dev.copy(png, file="LegalBarPlot.png", width=900, height=600) #Copy my plot to a PNG file
 dev.off() #close dev environment
@@ -320,3 +330,9 @@ dev.off() #close dev environment
 # barplot(plottable1n, main="Percent Injuries & Fatalities by Storm Type",
 #         xlab="Storm type", col=c("darkblue","red"),
 #         legend = c("% Fatalities","% Injuries"), beside=TRUE)
+
+# Scraping for forward citations
+
+#html <- getURL("http://tonybreyal.wordpress.com/2011/11/17/cool-hand-luke-aldwych-theatre-london-2011-production/", followlocation = TRUE)
+
+
