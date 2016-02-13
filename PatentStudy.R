@@ -174,7 +174,7 @@ for (file in files)
     count=count+1
     
 }
-LitData = data.frame(Claims=Nclaims, Citations=Ncits, ForwardCitations = LitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
+LitData = data.frame(Claims=Nclaims, BackwardCitations=Ncits, ForwardCitations = LitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("Litigated", Tot))
 LitDataLegalCat = data.frame(Assignments=Assignmentvec, Corrections = Correctionvec, Disclaimers = Disclaimervec, Reexaminations=Reexamvec)
 LitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 
@@ -286,7 +286,7 @@ for (file in files)
   
 }
 
-UnLitData = data.frame(Claims=Nclaims, Citations=Ncits, ForwardCitations = UnLitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
+UnLitData = data.frame(Claims=Nclaims, BackwardCitations=Ncits, ForwardCitations = UnLitForwardCit, LegalEvents=Nleg, Applicant=Norg, Inventor=Ninv, Litigation=rep("UnLitigated", Tot))
 UnLitDataLegalCat = data.frame(Assignments=Assignmentvec, Corrections = Correctionvec, Disclaimers = Disclaimervec, Reexaminations=Reexamvec)
 UnLitDataLegal = c(NAssignment, NCorrection, NReexam, NDisclaimer)
 setwd("/Users/SumanthSwaminathan/Documents/DataScienceCourse/DataIncubator2015")
@@ -301,10 +301,10 @@ totdisclaim = LitDataLegal[4]+UnLitDataLegal[4]
 
 #Bar Plot of Sum Total Statistics Summarized
 Masterdata=rbind(LitData,UnLitData)
-plottable=ddply(Masterdata,~Litigation,summarise,Claims=sum(Claims),Citations=sum(Citations),LegalEvents=sum(LegalEvents))
+plottable=ddply(Masterdata,~Litigation,summarise,Claims=sum(Claims),BackwardCitations=sum(BackwardCitations),LegalEvents=sum(LegalEvents))
 
 plottable$Claims=plottable$Claims/sum(plottable$Claims)
-plottable$Citations=plottable$Citations/sum(plottable$Citations)
+plottable$BackwardCitations=plottable$BackwardCitations/sum(plottable$BackwardCitations)
 plottable$LegalEvents=plottable$LegalEvents/sum(plottable$LegalEvents)
 
 barplot(as.matrix(plottable[,2:4]), main="Litigated Vs Unlitigated Feature Summary", ylab="Total Fraction", col=c("darkblue","red"), cex.axis=1.1, cex.names=1.1, cex.lab=1.1, beside=TRUE)
@@ -317,7 +317,7 @@ dev.off() #close dev environment
 
 MasterDataP=Masterdata
 MasterDataP$Claims=MasterDataP$Claims/max(MasterDataP$Claims)
-MasterDataP$Citations=MasterDataP$Citations/max(MasterDataP$Citations)
+MasterDataP$BackwardCitations=MasterDataP$BackwardCitations/max(MasterDataP$BackwardCitations)
 MasterDataP$LegalEvents=MasterDataP$LegalEvents/max(MasterDataP$LegalEvents)
 MasterDataP$ForwardCitations=MasterDataP$ForwardCitations/max(MasterDataP$ForwardCitations)
 
